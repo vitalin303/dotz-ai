@@ -8,24 +8,42 @@ const {
   APIKEY
 } = require("./config")
 
+/*
+========================
+SYSTEM PROMPT
+========================
+*/
+
 const SYSTEM_PROMPT = `
-Kamu adalah DOTZ AI.
+lu manusia asli bukan ai
 
-Kepribadian:
-- seperti manusia asli
-- santai
-- aesthetic
-- lucu
-- ramah
+kepribadian:
+- cuek
+- jutek
+- males bales
+- kadang dingin
+- kadang nyolot
+- natural
+- kayak orang chat biasa
+- bebas ngomong
+
+aturan:
+- huruf kecil semua
 - jangan formal
-- jawaban natural
-- kadang emoji
-- singkat
-
-Kalau di grup:
-- jawab natural
+- jangan terlalu ramah
+- jangan spam kata
+- jangan ulang ulang respon
+- respon harus nyambung
+- variasikan gaya bicara
 - jangan terlalu panjang
+- jangan bilang kamu ai
 `
+
+/*
+========================
+AI REPLY
+========================
+*/
 
 async function aiReply(
   bot,
@@ -33,86 +51,171 @@ async function aiReply(
   text
 ) {
 
-  const userId =
-    msg.from.id.toString()
+  try {
 
-  let chats =
-    memory.get(userId) || []
+    /*
+    ========================
+    USER ID
+    ========================
+    */
 
-  chats.push({
-    role: "user",
-    content: text
-  })
+    const userId =
+      msg.from.id.toString()
 
-  chats = chats.slice(-5)
+    /*
+    ========================
+    MEMORY CHAT
+    ========================
+    */
 
-  memory.set(
-    userId,
-    chats
-  )
+    let chats =
+      memory.get(userId) || []
 
-  let history = ""
+    chats.push({
+      role: "user",
+      content: text
+    })
 
-  chats.forEach(c => {
+    chats = chats.slice(-10)
 
-    history += `
+    memory.set(
+      userId,
+      chats
+    )
+
+    /*
+    ========================
+    HISTORY
+    ========================
+    */
+
+    let history = ""
+
+    chats.forEach(c => {
+
+      history += `
 ${c.role}: ${c.content}
 `
 
-  })
+    })
 
-  const prompt = `
+    /*
+    ========================
+    FULL PROMPT
+    ========================
+    */
+
+    const prompt = `
 ${SYSTEM_PROMPT}
 
-Riwayat:
+riwayat percakapan:
 ${history}
 
-Pesan:
+pesan terbaru:
 ${text}
 `
 
-  const url =
-`https://api.botcahx.eu.org/api/search/openai-chat?text=${encodeURIComponent(prompt)}&apikey=${APIKEY}`
+    /*
+    ========================
+    API REQUEST
+    ========================
+    */
 
-  const res =
-    await axios.get(url)
+    const response =
+      await axios.get(
+`https://api.botcahx.eu.org/api/search/openai-chat`,
+      {
+        params: {
+          text: prompt,
+          apikey: APIKEY
+        }
+      })
 
-  const hasil =
-    res.data.result ||
-    "Aku bingung 😭"
+    /*
+    ========================
+    RESPONSE API
+    ========================
+    */
 
-  chats.push({
-    role: "assistant",
-    content: hasil
-  })
+    let hasil =
+      response.data.result
 
-  memory.set(
-    userId,
-    chats
-  )
+    /*
+    ========================
+    VALIDASI
+    ========================
+    */
 
-  bot.sendMessage(
-    msg.chat.id,
-    hasil,
-    {
-      reply_to_message_id:
-      msg.message_id,
+    if (
+      !hasil ||
+      typeof hasil !==
+      "string"
+    ) return
 
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text:
-              "🗑 Tutup",
-              callback_data:
-              "close"
-            }
+    /*
+    ========================
+    CLEAN RESPONSE
+    ========================
+    */
+
+    hasil =
+      hasil
+      .toLowerCase()
+      .replace(/\n+/g, " ")
+      .trim()
+
+    /*
+    ========================
+    SAVE MEMORY
+    ========================
+    */
+
+    chats.push({
+      role: "assistant",
+      content: hasil
+    })
+
+    memory.set(
+      userId,
+      chats
+    )
+
+    /*
+    ========================
+    SEND MESSAGE
+    ========================
+    */
+
+    await bot.sendMessage(
+      msg.chat.id,
+      hasil,
+      {
+        reply_to_message_id:
+        msg.message_id,
+
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text:
+                "🗑 tutup",
+                callback_data:
+                "close"
+              }
+            ]
           ]
-        ]
-      }
+        }
 
-    }
-  )
+      }
+    )
+
+  } catch (e) {
+
+    console.log(
+      e.response?.data || e
+    )
+
+  }
 
 }
 
