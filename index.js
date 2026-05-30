@@ -7,7 +7,7 @@ const chalk =
 require("chalk")
 
 const {
-  BOT_TOKEN
+BOT_TOKEN
 } = require(
 "./src/config"
 )
@@ -44,229 +44,286 @@ require(
 
 const bot =
 new TelegramBot(
-  BOT_TOKEN,
-  {
-    polling: true
-  }
+BOT_TOKEN,
+{
+polling: true
+}
 )
 
 const users =
 new Set()
 
 console.log(
-  chalk.green(
-    "BOT AI AKTIF"
-  )
+chalk.green(
+"BOT AI AKTIF"
+)
 )
 
 /*
-========================
+
 START
-========================
+
 */
 
 bot.onText(
-  /\/start/,
-  async (msg) => {
+//start/,
+async (msg) => {
 
-    users.add(
-      msg.chat.id
-    )
+users.add(
+  msg.chat.id
+)
 
-    bot.sendMessage(
-      msg.chat.id,
-      menu,
-      {
-        reply_markup: {
-          keyboard: [
-            [
-              "☰ Menu",
-              "🧠 AI"
-            ],
-            [
-              "🎨 Image",
-              "🔊 TTS"
-            ]
-          ],
-          resize_keyboard:
-          true
-        }
-      }
-    )
+await bot.sendPhoto(
+  msg.chat.id,
+  "https://telegra.ph/file/0f6b9b6d3f2f0f0c0a0a.jpg",
+  {
+    caption:
+
+`🤖 DOTZ AI
+
+ai chat
+ai image
+ai tts
+
+owner:
+@dotzbaik`,
+
+    reply_markup: {
+
+      inline_keyboard: [
+
+        [
+          {
+            text: "👤 OWNER",
+            url:
+            "https://t.me/dotzbaik"
+          }
+        ],
+
+        [
+          {
+            text: "🧠 AI CHAT",
+            callback_data:
+            "ai"
+          },
+
+          {
+            text: "🎨 IMAGE",
+            callback_data:
+            "img"
+          }
+        ],
+
+        [
+          {
+            text: "🔊 TTS",
+            callback_data:
+            "tts"
+          }
+        ]
+
+      ]
+
+    }
+
+  }
+)
+
+await bot.sendMessage(
+  msg.chat.id,
+  menu,
+  {
+    reply_markup: {
+      keyboard: [
+        [
+          "☰ Menu",
+          "🧠 AI"
+        ],
+        [
+          "🎨 Image",
+          "🔊 TTS"
+        ]
+      ],
+      resize_keyboard:
+      true
+    }
+  }
+)
 
 })
 
 /*
-========================
+
 MENU
-========================
+
 */
 
 bot.on(
-  "message",
-  async (msg) => {
+"message",
+async (msg) => {
 
-    if (!msg.text)
-      return
+if (!msg.text)
+  return
 
-    users.add(
-      msg.chat.id
-    )
+users.add(
+  msg.chat.id
+)
 
-    if (
-      msg.text ==
-      "☰ Menu"
-    ) {
+if (
+  msg.text ==
+  "☰ Menu"
+) {
 
-      bot.sendMessage(
-        msg.chat.id,
-        menu
-      )
+  bot.sendMessage(
+    msg.chat.id,
+    menu
+  )
 
-    }
+}
 
 })
 
 /*
-========================
+
 CHAT
-========================
+
 */
 
 bot.onText(
-  /\/chat (.+)/,
-  async (
+//chat (.+)/,
+async (
+msg,
+match
+) => {
+
+try {
+
+  const text =
+  match[1]
+
+  bot.sendChatAction(
+    msg.chat.id,
+    "typing"
+  )
+
+  await aiReply(
+    bot,
     msg,
-    match
-  ) => {
+    text
+  )
 
-    try {
+} catch (e) {
 
-      const text =
-      match[1]
+  console.log(e)
 
-      bot.sendChatAction(
-        msg.chat.id,
-        "typing"
-      )
-
-      await aiReply(
-        bot,
-        msg,
-        text
-      )
-
-    } catch (e) {
-
-      console.log(e)
-
-    }
+}
 
 })
 
 /*
-========================
+
 IMAGE
-========================
+
 */
 
 bot.onText(
-  /\/img (.+)/,
-  async (
+//img (.+)/,
+async (
+msg,
+match
+) => {
+
+try {
+
+  const prompt =
+  match[1]
+
+  bot.sendChatAction(
+    msg.chat.id,
+    "upload_photo"
+  )
+
+  await imageReply(
+    bot,
     msg,
-    match
-  ) => {
+    prompt
+  )
 
-    try {
+} catch {
 
-      const prompt =
-      match[1]
+  bot.sendMessage(
+    msg.chat.id,
+    "❌ Error image"
+  )
 
-      bot.sendChatAction(
-        msg.chat.id,
-        "upload_photo"
-      )
-
-      await imageReply(
-        bot,
-        msg,
-        prompt
-      )
-
-    } catch {
-
-      bot.sendMessage(
-        msg.chat.id,
-        "❌ Error image"
-      )
-
-    }
+}
 
 })
 
 /*
-========================
+
 TTS
-========================
+
 */
 
 bot.onText(
-  /\/tts (.+)/,
-  async (
+//tts (.+)/,
+async (
+msg,
+match
+) => {
+
+try {
+
+  const text =
+  match[1]
+
+  bot.sendChatAction(
+    msg.chat.id,
+    "record_voice"
+  )
+
+  await ttsReply(
+    bot,
     msg,
-    match
-  ) => {
+    text
+  )
 
-    try {
+} catch {
 
-      const text =
-      match[1]
+  bot.sendMessage(
+    msg.chat.id,
+    "❌ Error TTS"
+  )
 
-      bot.sendChatAction(
-        msg.chat.id,
-        "record_voice"
-      )
-
-      await ttsReply(
-        bot,
-        msg,
-        text
-      )
-
-    } catch {
-
-      bot.sendMessage(
-        msg.chat.id,
-        "❌ Error TTS"
-      )
-
-    }
+}
 
 })
 
 /*
-========================
+
 OWNER PANEL
-========================
+
 */
 
 bot.onText(
-  /\/owner/,
-  async (msg) => {
+//owner/,
+async (msg) => {
 
-    if (
-      !isOwner(msg)
-    ) {
+if (
+  !isOwner(msg)
+) {
 
-      return bot.sendMessage(
-        msg.chat.id,
-        "❌ Khusus owner"
-      )
+  return bot.sendMessage(
+    msg.chat.id,
+    "❌ Khusus owner"
+  )
 
-    }
+}
 
-    bot.sendMessage(
-      msg.chat.id,
+bot.sendMessage(
+  msg.chat.id,
+
 `👑 OWNER PANEL
 
 📌 STATUS:
@@ -278,126 +335,176 @@ ${users.size}
 📌 ID:
 ${msg.from.id}
 `
-    )
+)
 
 })
 
 /*
-========================
+
 BROADCAST
-========================
+
 */
 
 bot.onText(
-  /\/bc (.+)/,
-  async (
-    msg,
-    match
-  ) => {
+//bc (.+)/,
+async (
+msg,
+match
+) => {
 
-    if (
-      !isOwner(msg)
-    ) {
+if (
+  !isOwner(msg)
+) {
 
-      return bot.sendMessage(
-        msg.chat.id,
-        "❌ Khusus owner"
-      )
+  return bot.sendMessage(
+    msg.chat.id,
+    "❌ Khusus owner"
+  )
 
-    }
+}
 
-    const text =
-      match[1]
+const text =
+  match[1]
 
-    users.forEach(id => {
+users.forEach(id => {
 
-      bot.sendMessage(
-        id,
+  bot.sendMessage(
+    id,
+
 `📢 BROADCAST
 
 ${text}`
-      )
+)
 
-    })
+})
 
 })
 
 /*
-========================
+
 AUTO AI REPLY
-========================
+
 */
 
 bot.on(
-  "message",
-  async (msg) => {
+"message",
+async (msg) => {
 
-    try {
+try {
 
-      const allow =
-      await groupMode(
-        bot,
-        msg
-      )
+  const allow =
+  await groupMode(
+    bot,
+    msg
+  )
 
-      if (!allow)
-        return
+  if (!allow)
+    return
 
-      bot.sendChatAction(
-        msg.chat.id,
-        "typing"
-      )
+  bot.sendChatAction(
+    msg.chat.id,
+    "typing"
+  )
 
-      await aiReply(
-        bot,
-        msg,
-        msg.text
-      )
+  await aiReply(
+    bot,
+    msg,
+    msg.text
+  )
 
-    } catch (e) {
+} catch (e) {
 
-      console.log(e)
+  console.log(e)
 
-    }
+}
 
 })
 
 /*
-========================
+
 BUTTON
-========================
+
 */
 
 bot.on(
-  "callback_query",
-  async (q) => {
+"callback_query",
+async (q) => {
 
-    if (
-      q.data ==
-      "close"
-    ) {
+try {
 
-      bot.deleteMessage(
-        q.message.chat.id,
-        q.message.message_id
-      )
+  if (
+    q.data === "ai"
+  ) {
 
-    }
+    await bot.answerCallbackQuery(
+      q.id,
+      {
+        text:
+        "gunakan /chat halo"
+      }
+    )
+
+  }
+
+  if (
+    q.data === "img"
+  ) {
+
+    await bot.answerCallbackQuery(
+      q.id,
+      {
+        text:
+        "gunakan /img kucing lucu"
+      }
+    )
+
+  }
+
+  if (
+    q.data === "tts"
+  ) {
+
+    await bot.answerCallbackQuery(
+      q.id,
+      {
+        text:
+        "gunakan /tts halo"
+      }
+    )
+
+  }
+
+  if (
+    q.data === "close"
+  ) {
+
+    await bot.deleteMessage(
+      q.message.chat.id,
+      q.message.message_id
+    )
+
+  }
+
+} catch (e) {
+
+  console.log(e)
+
+}
 
 })
 
 /*
-========================
+
 ERROR
-========================
+
 */
 
 process.on(
-  "uncaughtException",
-  console.log
+"uncaughtException",
+console.log
 )
 
 process.on(
-  "unhandledRejection",
-  console.log
+"unhandledRejection",
+console.log
 )
