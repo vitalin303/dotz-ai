@@ -75,7 +75,7 @@ users.add(
 
 await bot.sendPhoto(
   msg.chat.id,
-  "https://telegra.ph/file/0f6b9b6d3f2f0f0c0a0a.jpg",
+  "https://files.catbox.moe/k1lo7x.png",
   {
     caption:
 
